@@ -18,6 +18,12 @@ ROLE_FOOT = 15
 
 ROLE_MAP = {ROLE_START: "start", ROLE_MIDDLE: "middle", ROLE_FINISH: "finish", ROLE_FOOT: "foot"}
 
+# Standard "12 x 12 with kickboard" board bounds (product_size_id=10)
+BOARD_X_MIN = 0
+BOARD_X_MAX = 144
+BOARD_Y_MIN = 0
+BOARD_Y_MAX = 156
+
 # Regex to parse frames string: "p1100r15p1103r15..." -> [(1100, 15), (1103, 15), ...]
 _FRAMES_PATTERN = re.compile(r"p(\d+)r(\d+)")
 
@@ -27,8 +33,12 @@ def _parse_frames(frames: str) -> list[tuple[int, int]]:
     return [(int(p), int(r)) for p, r in _FRAMES_PATTERN.findall(frames)]
 
 
-def load_placements(db_path: str | Path) -> pd.DataFrame:
+def load_placements(db_path: str | Path, filter_bounds: bool = True) -> pd.DataFrame:
     """Load hold placements with x/y coordinates for Kilter Board Original.
+
+    Args:
+        db_path: Path to the kilter.db SQLite file.
+        filter_bounds: If True, filter to standard 12x12 board bounds.
 
     Returns DataFrame with columns: placement_id, hole_id, x, y
     """
@@ -44,6 +54,13 @@ def load_placements(db_path: str | Path) -> pd.DataFrame:
         params=(KILTER_LAYOUT_ID,),
     )
     conn.close()
+    if filter_bounds:
+        df = df[
+            (df["x"] >= BOARD_X_MIN)
+            & (df["x"] <= BOARD_X_MAX)
+            & (df["y"] >= BOARD_Y_MIN)
+            & (df["y"] <= BOARD_Y_MAX)
+        ].reset_index(drop=True)
     return df
 
 

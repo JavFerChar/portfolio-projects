@@ -5,6 +5,10 @@ from pathlib import Path
 import pytest
 
 from src.data.ingest import (
+    BOARD_X_MAX,
+    BOARD_X_MIN,
+    BOARD_Y_MAX,
+    BOARD_Y_MIN,
     ROLE_MAP,
     load_climbs,
     load_difficulty_grades,
@@ -90,6 +94,12 @@ class TestLoadPlacements:
     def test_coords_are_numeric(self, placements):
         assert placements["x"].dtype in ("int64", "float64")
         assert placements["y"].dtype in ("int64", "float64")
+
+    def test_coords_within_board_bounds(self, placements):
+        assert placements["x"].min() >= BOARD_X_MIN
+        assert placements["x"].max() <= BOARD_X_MAX
+        assert placements["y"].min() >= BOARD_Y_MIN
+        assert placements["y"].max() <= BOARD_Y_MAX
 
 
 class TestLoadDifficultyGrades:
