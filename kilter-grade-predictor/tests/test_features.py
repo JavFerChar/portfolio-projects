@@ -7,9 +7,14 @@ import pytest
 
 from src.data.ingest import load_climbs, load_placements
 from src.features.hold_usability import (
-    HOLD_USABILITY_FEATURE_COLS,
+    BASE_USABILITY_COLS,
+    ROLE_TYPICAL_GRADE_COLS,
+    aggregate_angle_conditioned_features,
     aggregate_hold_usability_features,
+    aggregate_role_typical_grade_features,
     compute_hold_usability,
+    compute_hold_usability_by_angle,
+    compute_role_typical_grade,
 )
 from src.features.spatial import SPATIAL_FEATURE_COLS, extract_spatial_features
 
@@ -41,8 +46,30 @@ def hold_scores(placements):
 
 
 @pytest.fixture(scope="module")
+def hold_scores_by_angle(placements):
+    full_climbs = load_climbs(DB_PATH, min_ascents=5)
+    return compute_hold_usability_by_angle(full_climbs, placements)
+
+
+@pytest.fixture(scope="module")
 def usability_features(climbs, hold_scores):
     return aggregate_hold_usability_features(climbs, hold_scores)
+
+
+@pytest.fixture(scope="module")
+def angle_features(climbs, hold_scores_by_angle):
+    return aggregate_angle_conditioned_features(climbs, hold_scores_by_angle)
+
+
+@pytest.fixture(scope="module")
+def role_scores(placements):
+    full_climbs = load_climbs(DB_PATH, min_ascents=5)
+    return compute_role_typical_grade(full_climbs, placements)
+
+
+@pytest.fixture(scope="module")
+def role_features(climbs, role_scores):
+    return aggregate_role_typical_grade_features(climbs, role_scores)
 
 
 class TestSpatialFeatures:
@@ -94,14 +121,64 @@ class TestHoldUsability:
 
     def test_route_features_shape(self, usability_features, climbs):
         assert len(usability_features) == len(climbs)
-        assert set(HOLD_USABILITY_FEATURE_COLS).issubset(set(usability_features.columns))
+        assert set(BASE_USABILITY_COLS).issubset(set(usability_features.columns))
 
     def test_route_features_no_nans(self, usability_features):
-        assert usability_features[HOLD_USABILITY_FEATURE_COLS].isna().sum().sum() == 0
+        assert usability_features[BASE_USABILITY_COLS].isna().sum().sum() == 0
 
     def test_route_features_finite(self, usability_features):
-        assert np.isfinite(usability_features[HOLD_USABILITY_FEATURE_COLS].values).all()
+        assert np.isfinite(usability_features[BASE_USABILITY_COLS].values).all()
 
     def test_pct_hard_holds_range(self, usability_features):
         assert (usability_features["pct_hard_holds"] >= 0).all()
         assert (usability_features["pct_hard_holds"] <= 1).all()
+
+    def test_angle_conditioned_shape(self, angle_features, climbs):
+        assert len(angle_features) == len(climbs)
+        for col in [
+            "avg_hold_usability_at_angle",
+            "min_hold_usability_at_angle",
+            "max_hold_usability_at_angle",
+        ]:
+            assert col in angle_features.columns
+
+    def test_angle_conditioned_no_nans(self, angle_features):
+        cols = [
+            "avg_hold_usability_at_angle",
+            "min_hold_usability_at_angle",
+            "max_hold_usability_at_angle",
+        ]
+        assert angle_features[cols].isna().sum().sum() == 0
+
+    def test_angle_conditioned_finite(self, angle_features):
+        cols = [
+            "avg_hold_usability_at_angle",
+            "min_hold_usability_at_angle",
+            "max_hold_usability_at_angle",
+        ]
+        assert np.isfinite(angle_features[cols].values).all()
+
+    def test_hold_scores_by_angle_has_bins(self, hold_scores_by_angle):
+        for col in ["hold_usability_low", "hold_usability_mid", "hold_usability_steep"]:
+            assert col in hold_scores_by_angle.columns
+
+    def test_role_scores_has_columns(self, role_scores):
+        for label in ["low", "mid", "steep"]:
+            assert f"start_typical_grade_{label}" in role_scores.columns
+            assert f"finish_typical_grade_{label}" in role_scores.columns
+
+    def test_role_scores_not_empty(self, role_scores):
+        assert len(role_scores) > 50
+
+    def test_role_features_shape(self, role_features, climbs):
+        assert len(role_features) == len(climbs)
+        for col in ROLE_TYPICAL_GRADE_COLS:
+            assert col in role_features.columns
+
+    def test_role_features_grade_range(self, role_features):
+        """Typical grades should be within the valid grade range when present."""
+        for col in ROLE_TYPICAL_GRADE_COLS:
+            valid = role_features[col].dropna()
+            if len(valid) > 0:
+                assert valid.min() >= 0, f"{col} has negative grades"
+                assert valid.max() <= 40, f"{col} has grades > 40"

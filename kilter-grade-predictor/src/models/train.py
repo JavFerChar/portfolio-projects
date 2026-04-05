@@ -15,8 +15,12 @@ from xgboost import XGBRegressor
 from src.data.ingest import load_climbs, load_placements
 from src.features.hold_usability import (
     HOLD_USABILITY_FEATURE_COLS,
+    aggregate_angle_conditioned_features,
     aggregate_hold_usability_features,
+    aggregate_role_typical_grade_features,
     compute_hold_usability,
+    compute_hold_usability_by_angle,
+    compute_role_typical_grade,
 )
 from src.features.spatial import SPATIAL_FEATURE_COLS, extract_spatial_features
 
@@ -39,8 +43,16 @@ def load_feature_matrix() -> pd.DataFrame:
     spatial = extract_spatial_features(climbs, placements)
     hold_scores = compute_hold_usability(climbs, placements)
     usability = aggregate_hold_usability_features(climbs, hold_scores)
+    hold_scores_by_angle = compute_hold_usability_by_angle(climbs, placements)
+    angle_features = aggregate_angle_conditioned_features(climbs, hold_scores_by_angle)
+    role_scores = compute_role_typical_grade(climbs, placements)
+    role_features = aggregate_role_typical_grade_features(climbs, role_scores)
 
-    features = spatial.merge(usability, on="climb_uuid")
+    features = (
+        spatial.merge(usability, on="climb_uuid")
+        .merge(angle_features, on="climb_uuid")
+        .merge(role_features, on="climb_uuid")
+    )
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     features.to_parquet(cache_path, index=False)
     return features
