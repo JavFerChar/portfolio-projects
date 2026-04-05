@@ -28,6 +28,7 @@
 - GitHub Actions CI: test → lint → docker build
 - README: architecture diagram, screenshots/GIF of dashboard, CI badge
 - Demo GIF for README (Streamlit → select holds → predict → see grade)
+- Data refresh automation: scheduled `boardlib database kilter` sync + retrain pipeline with metric comparison (promote new model only if test MAE improves or holds steady)
 
 ## Phase 7: Deploy to Hugging Face Spaces
 
