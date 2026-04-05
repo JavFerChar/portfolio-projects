@@ -26,6 +26,10 @@ data/processed/
 mlruns/
 mlartifacts/
 
+# Models (large binary files)
+models/*.joblib
+models/shap/
+
 # Notebooks
 .ipynb_checkpoints/
 
