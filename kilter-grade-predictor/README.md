@@ -14,9 +14,9 @@ The core challenge is that the database contains no hold-type labels (crimp, jug
 |---|---|---|---|
 | Baseline (mean) | 3.838 | — | — |
 | XGBoost default | 0.998 | — | — |
-| **XGBoost tuned** | **0.302** | **0.306** | **0.970** |
+| **XGBoost tuned** | **0.278** | **0.282** | **0.971** |
 
-92% improvement over baseline. A MAE of 0.306 means predictions land within roughly one-third of a grade step on the Kilter difficulty scale.
+93% improvement over baseline. A MAE of 0.282 means predictions land within roughly one-quarter of a grade step on the Kilter difficulty scale.
 
 ## Feature Engineering
 
@@ -83,6 +83,7 @@ The Kilter Board community adds ~6,500 new routes per month. The model trains on
 | Data ingestion + EDA | Done |
 | Feature engineering | Done |
 | Modeling (XGBoost + MLflow) | Done |
+| Board image visualizations | Done |
 | Serving (FastAPI + Streamlit) | Planned |
 | Production polish (Docker, CI/CD) | Planned |
 
