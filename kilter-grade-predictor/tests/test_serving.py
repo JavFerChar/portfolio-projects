@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock
 
-import numpy as np
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
@@ -74,24 +73,23 @@ class TestSchemas:
 # API unit tests (mocked model, always run)
 # ---------------------------------------------------------------------------
 @pytest.fixture()
-def mock_client():
-    """TestClient with mocked model and hold_scores (no lifespan, no model file needed)."""
+def mock_client(monkeypatch):
+    """TestClient with mocked predict_grade (no model/db files needed)."""
+    from src.serving import app as app_module
     from src.serving.app import create_app
 
-    mock_model = MagicMock()
-    mock_model.predict.return_value = np.array([20.0])
-
-    mock_hold_scores = pd.DataFrame(
-        {
-            "placement_id": [1, 2],
-            "hold_usability": [0.5, 0.8],
-            "hold_angle_sensitivity": [0.1, 0.2],
-        }
+    monkeypatch.setattr(
+        app_module,
+        "predict_grade",
+        lambda holds, angle, model, hold_scores: {
+            "predicted_grade": 20.0,
+            "v_grade": "7a/V6",
+        },
     )
 
     test_app = create_app(use_lifespan=False)
-    test_app.state.model = mock_model
-    test_app.state.hold_scores = mock_hold_scores
+    test_app.state.model = MagicMock()
+    test_app.state.hold_scores = pd.DataFrame()
 
     with TestClient(test_app, raise_server_exceptions=False) as client:
         yield client
