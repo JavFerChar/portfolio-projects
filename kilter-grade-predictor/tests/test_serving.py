@@ -75,8 +75,8 @@ class TestSchemas:
 # ---------------------------------------------------------------------------
 @pytest.fixture()
 def mock_client():
-    """TestClient with mocked model and hold_scores on app.state."""
-    from src.serving.app import app
+    """TestClient with mocked model and hold_scores (no lifespan, no model file needed)."""
+    from src.serving.app import create_app
 
     mock_model = MagicMock()
     mock_model.predict.return_value = np.array([20.0])
@@ -89,10 +89,11 @@ def mock_client():
         }
     )
 
-    app.state.model = mock_model
-    app.state.hold_scores = mock_hold_scores
+    test_app = create_app(use_lifespan=False)
+    test_app.state.model = mock_model
+    test_app.state.hold_scores = mock_hold_scores
 
-    with TestClient(app, raise_server_exceptions=False) as client:
+    with TestClient(test_app, raise_server_exceptions=False) as client:
         yield client
 
 
