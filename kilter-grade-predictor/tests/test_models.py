@@ -1,7 +1,5 @@
 """Tests for model training and prediction modules."""
 
-from pathlib import Path
-
 import joblib
 import numpy as np
 import pytest
@@ -9,8 +7,7 @@ import pytest
 from src.models.predict import ALL_FEATURE_COLS, load_model, predict_grade
 from src.models.train import load_feature_matrix, split_data, train_baseline
 
-MODEL_PATH = Path("models/xgboost_tuned.joblib")
-DB_PATH = Path("data/raw/kilter.db")
+from .conftest import DB_PATH, MODEL_PATH, SAMPLE_HOLDS
 
 pytestmark = pytest.mark.skipif(
     not MODEL_PATH.exists() or not DB_PATH.exists(),
@@ -75,14 +72,7 @@ class TestModel:
 
 class TestPredictGrade:
     def test_predict_returns_dict(self, model):
-        holds = [
-            {"x": 56, "y": 16, "role": "start"},
-            {"x": 72, "y": 48, "role": "middle"},
-            {"x": 88, "y": 80, "role": "middle"},
-            {"x": 72, "y": 120, "role": "middle"},
-            {"x": 80, "y": 152, "role": "finish"},
-        ]
-        result = predict_grade(holds, angle=40, model=model, db_path=DB_PATH)
+        result = predict_grade(SAMPLE_HOLDS, angle=40, model=model, db_path=DB_PATH)
         assert "predicted_grade" in result
         assert "v_grade" in result
         assert isinstance(result["predicted_grade"], float)
