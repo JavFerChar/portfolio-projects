@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.git/
+mlruns/
+notebooks/
+tests/
+.ruff_cache/
+.pytest_cache/
+.pre-commit-config.yaml
