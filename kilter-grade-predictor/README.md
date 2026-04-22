@@ -41,10 +41,13 @@ src/
   features/hold_usability.py  # Hold quality inference from usage patterns
   models/train.py             # XGBoost + Optuna + MLflow pipeline
   models/predict.py           # Single-route inference
+  serving/app.py              # FastAPI prediction API
+  serving/schemas.py          # Pydantic request/response models
+  serving/dashboard.py        # Streamlit interactive dashboard
 notebooks/
   01_eda.ipynb                # Grade/angle distributions, hold position heatmaps
   02_features.ipynb           # Feature correlations, hold usability board heatmaps
-tests/                        # 41 tests (data, features, model)
+tests/                        # 63 tests (data, features, model, API)
 ```
 
 ## Quick Start
@@ -64,7 +67,30 @@ make train
 
 # View MLflow experiment tracking
 uv run mlflow ui
+```
 
+## Serving
+
+```bash
+# FastAPI prediction API (http://localhost:8000/docs for Swagger UI)
+make serve
+
+# Streamlit dashboard (http://localhost:8501)
+make dashboard
+
+# Docker — all services (API + dashboard + MLflow)
+make docker-build
+make docker-up
+# API: http://localhost:8000  Dashboard: http://localhost:8501  MLflow: http://localhost:5000
+```
+
+The API exposes `POST /predict` (accepts holds + angle, returns predicted grade) and `GET /health`. The dashboard provides an interactive board where you can select holds, adjust the angle, and see predictions with SHAP explanations.
+
+Docker requires the model and database files to be present locally before building. Run `boardlib database kilter data/raw/kilter.db` and `make train` first.
+
+## Data Freshness
+
+```bash
 # Refresh data (incremental sync) and retrain
 uv run boardlib database kilter data/raw/kilter.db
 rm data/processed/features.parquet  # clear feature cache
@@ -84,14 +110,14 @@ The Kilter Board community adds ~6,500 new routes per month. The model trains on
 | Feature engineering | Done |
 | Modeling (XGBoost + MLflow) | Done |
 | Board image visualizations | Done |
-| Serving (FastAPI + Streamlit) | Planned |
-| Production polish (Docker, CI/CD) | Planned |
+| Serving (FastAPI + Streamlit + Docker) | Done |
+| Production polish (CI/CD, demo GIF) | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for detailed next steps.
 
 ## Stack
 
-Python 3.12, uv, BoardLib, XGBoost, Optuna, MLflow, SHAP, pandas, scikit-learn, pytest, GitHub Actions
+Python 3.12, uv, BoardLib, XGBoost, Optuna, MLflow, SHAP, FastAPI, Streamlit, Plotly, Docker, pandas, scikit-learn, pytest, GitHub Actions
 
 ## License
 

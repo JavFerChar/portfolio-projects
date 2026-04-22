@@ -18,6 +18,8 @@ dependencies = [
     "pydantic>=2.10",
     "scikit-learn>=1.6",
     "scipy>=1.14",
+    "matplotlib>=3.9",
+    "plotly>=5.18",
     "shap>=0.46,!=0.51.0",
     "streamlit>=1.40",
     "uvicorn>=0.32",
@@ -28,7 +30,6 @@ dependencies = [
 dev = [
     "ipykernel>=6.29",
     "jupyter>=1.1",
-    "matplotlib>=3.9",
     "pre-commit>=4.0",
     "pytest>=8.3",
     "ruff>=0.8",
