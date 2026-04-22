@@ -1,29 +1,10 @@
 # Roadmap
 
-## Phase 5: Serving (next)
+## ~~Phase 5: Serving~~ ✅ Done
 
-### FastAPI endpoint
-- `POST /predict` — accepts hold list + angle, returns predicted grade + V-grade
-- `GET /health` — health check
-- Pydantic request/response models with input validation
-- Model loaded once at startup
+FastAPI prediction API (`POST /predict`, `GET /health`) with Pydantic validation. Interactive Streamlit dashboard with Plotly board visualization, click-to-select holds, SHAP waterfall explanations, and hold usability heatmap. Multi-stage Docker build with docker-compose (API + dashboard + MLflow). 63 tests.
 
-### Streamlit dashboard
-- Visual board grid where you can select holds
-- Angle slider (0-70°)
-- Predict button → displays grade + SHAP waterfall for that prediction
-- Hold usability heatmap overlay
-
-### Docker
-- Dockerfile (multi-stage build)
-- docker-compose.yml: API (8000) + Streamlit (8501) + MLflow UI (5000)
-- `make docker-up` brings everything up
-
-### Tests
-- FastAPI TestClient: valid/invalid requests, health endpoint
-- Integration test: predict endpoint returns valid grade
-
-## Phase 6: Production Polish
+## Phase 6: Production Polish (next)
 
 - GitHub Actions CI: test → lint → docker build
 - README: architecture diagram, screenshots/GIF of dashboard, CI badge

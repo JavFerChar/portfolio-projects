@@ -90,16 +90,13 @@ Docker requires the model and database files to be present locally before buildi
 
 ## Data Freshness
 
+The Kilter Board community adds ~6,500 new routes per month. The model trains on a snapshot of the database at download time. Since the board hardware (holds, positions) doesn't change and hold usability scores stabilise after ~20 routes per hold, the model generalises well without frequent retraining. To refresh:
+
 ```bash
-# Refresh data (incremental sync) and retrain
 uv run boardlib database kilter data/raw/kilter.db
 rm data/processed/features.parquet  # clear feature cache
 make train
 ```
-
-## Data Freshness
-
-The Kilter Board community adds ~6,500 new routes per month. The model trains on a snapshot of the database at download time. Since the board hardware (holds, positions) doesn't change and hold usability scores stabilise after ~20 routes per hold, the model generalises well without frequent retraining. To refresh, re-run `boardlib database kilter` (incremental sync) followed by `make train`.
 
 ## Project Status
 
